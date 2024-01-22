@@ -1,14 +1,17 @@
 const hejtObjectWords = require('./data.js');
 
-const test = ["mądry", "empatia"];
+const test = ["wredny", "empatia"];
 
 const allCategories = [
     [],
     []
 ];
 
-let isHejt = 0;
-let notHejt = 0;
+let isHejt = 1;
+let notHejt = 1;
+
+let isHejtCounterWord = 0;
+let notHejtCounterWord = 0;
 
 for (const category in hejtObjectWords) {
     // console.log(hejtObjectWords[category]);
@@ -20,7 +23,7 @@ for (const category in hejtObjectWords) {
             }
             const newWord = hejtObjectWords[category][item];
             const existingWord = allCategories[0].find(obj => obj.word === newWord);
-            isHejt++;
+            isHejtCounterWord++;
 
             if (!existingWord) {
                 allCategories[0].push({
@@ -38,7 +41,7 @@ for (const category in hejtObjectWords) {
             }
             const newWord = hejtObjectWords[category][item];
             const existingWord = allCategories[1].find(obj => obj.word === newWord);
-            notHejt++;
+            notHejtCounterWord++;
 
             if (!existingWord) {
                 allCategories[1].push({
@@ -54,9 +57,32 @@ for (const category in hejtObjectWords) {
 
 
 console.log(allCategories);
+console.log(isHejtCounterWord);
+console.log(notHejtCounterWord);
+
+for (const item of test) { // obliczanie współczynnika czy komentarz jest hejtem
+    console.log(item);
+    const existingWord = allCategories[1].find(obj => obj.word === item);
+    if (!existingWord) {
+        console.log(`Word "${item}" not found in allCategories[0].`);
+        isHejt *= 1 / isHejtCounterWord;
+    } else {
+        console.log(`Found existing word "${item}". Counter: ${existingWord.counter}`);
+        isHejt *= existingWord.counter / isHejtCounterWord;
+    }
+}
+
+for (const item of test) { // obliczanie współczynnika czy komentarz nie jest hejtem
+    console.log(item);
+    const existingWord = allCategories[0].find(obj => obj.word === item);
+    if (!existingWord) {
+        // console.log(`Word "${item}" not found in allCategories[0].`);
+        notHejt *= 1 / notHejtCounterWord;
+    } else {
+        // console.log(`Found existing word "${item}". Counter: ${existingWord.counter}`);
+        notHejt *= existingWord.counter / notHejtCounterWord;
+    }
+}
+
 console.log(isHejt);
 console.log(notHejt);
-
-for (const item in test) {
-    console.log(test[item])
-}
