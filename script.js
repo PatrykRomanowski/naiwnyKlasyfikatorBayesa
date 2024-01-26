@@ -1,88 +1,87 @@
-const hejtObjectWords = require('./data.js');
+const hejtObjectWords = require("./data.js");
 
-const test = ["wredny", "empatia"];
-
-const allCategories = [
-    [],
-    []
+const test = [
+  "szkalujący",
+  "sarkastyczny",
+  "podejrzliwy",
+  "hojny",
+  "szlachetny",
+  "wyrozumiały",
 ];
 
-let isHejt = 1;
-let notHejt = 1;
+const allCategories = [[], []];
+
+let isHejtProbability = 1;
+let notHejtProbability = 1;
 
 let isHejtCounterWord = 0;
 let notHejtCounterWord = 0;
 
+const totalComments = Object.keys(hejtObjectWords).length;
+let isHejtCategoryProbability = 0;
+let notHejtCategoryProbability = 0;
+
 for (const category in hejtObjectWords) {
-    // console.log(hejtObjectWords[category]);
-    // console.log(hejtObjectWords[category][0])
-    if (hejtObjectWords[category][0] === 'tak') {
-        for (const item in hejtObjectWords[category]) {
-            if (item === "0") {
-                continue;
-            }
-            const newWord = hejtObjectWords[category][item];
-            const existingWord = allCategories[0].find(obj => obj.word === newWord);
-            isHejtCounterWord++;
+  if (hejtObjectWords[category][0] === "tak") {
+    isHejtCategoryProbability += 1;
+  } else {
+    notHejtCategoryProbability += 1;
+  }
 
-            if (!existingWord) {
-                allCategories[0].push({
-                    word: newWord,
-                    counter: 1
-                });
-            } else {
-                existingWord.counter += 1;
-            }
-        }
-    } else {
-        for (const item in hejtObjectWords[category]) {
-            if (item === "0") {
-                continue;
-            }
-            const newWord = hejtObjectWords[category][item];
-            const existingWord = allCategories[1].find(obj => obj.word === newWord);
-            notHejtCounterWord++;
+  for (let i = 1; i < hejtObjectWords[category].length; i++) {
+    const newWord = hejtObjectWords[category][i];
+    const existingWord = allCategories[
+      hejtObjectWords[category][0] === "tak" ? 0 : 1
+    ].find((obj) => obj.word === newWord);
 
-            if (!existingWord) {
-                allCategories[1].push({
-                    word: newWord,
-                    counter: 1
-                });
-            } else {
-                existingWord.counter += 1;
-            }
-        }
-    }
-}
-
-
-console.log(allCategories);
-console.log(isHejtCounterWord);
-console.log(notHejtCounterWord);
-
-for (const item of test) { // obliczanie współczynnika czy komentarz jest hejtem
-    console.log(item);
-    const existingWord = allCategories[1].find(obj => obj.word === item);
     if (!existingWord) {
-        console.log(`Word "${item}" not found in allCategories[0].`);
-        isHejt *= 1 / isHejtCounterWord;
+      allCategories[hejtObjectWords[category][0] === "tak" ? 0 : 1].push({
+        word: newWord,
+        counter: 1,
+      });
     } else {
-        console.log(`Found existing word "${item}". Counter: ${existingWord.counter}`);
-        isHejt *= existingWord.counter / isHejtCounterWord;
+      existingWord.counter += 1;
     }
+
+    if (hejtObjectWords[category][0] === "tak") {
+      isHejtCounterWord++;
+    } else {
+      notHejtCounterWord++;
+    }
+  }
 }
 
-for (const item of test) { // obliczanie współczynnika czy komentarz nie jest hejtem
-    console.log(item);
-    const existingWord = allCategories[0].find(obj => obj.word === item);
-    if (!existingWord) {
-        // console.log(`Word "${item}" not found in allCategories[0].`);
-        notHejt *= 1 / notHejtCounterWord;
-    } else {
-        // console.log(`Found existing word "${item}". Counter: ${existingWord.counter}`);
-        notHejt *= existingWord.counter / notHejtCounterWord;
-    }
+isHejtCategoryProbability /= totalComments;
+notHejtCategoryProbability = 1 - isHejtCategoryProbability;
+
+for (const item of test) {
+  const existingWordIsHejt = allCategories[0].find((obj) => obj.word === item);
+  const existingWordNotHejt = allCategories[1].find((obj) => obj.word === item);
+
+  const wordGivenIsHejt = existingWordIsHejt
+    ? existingWordIsHejt.counter / isHejtCounterWord
+    : 0;
+  const wordGivenNotHejt = existingWordNotHejt
+    ? existingWordNotHejt.counter / notHejtCounterWord
+    : 0;
+
+  isHejtProbability *= wordGivenIsHejt !== 0 ? wordGivenIsHejt : 1;
+  notHejtProbability *= wordGivenNotHejt !== 0 ? wordGivenNotHejt : 1;
 }
 
-console.log(isHejt);
-console.log(notHejt);
+// Obliczanie prawdopodobieństwa, że komentarz jest hejtem
+const isHejtResult =
+  (isHejtProbability * isHejtCategoryProbability) /
+  (isHejtProbability * isHejtCategoryProbability +
+    notHejtProbability * notHejtCategoryProbability);
+
+// Obliczanie prawdopodobieństwa, że komentarz nie jest hejtem
+const notHejtResult =
+  (notHejtProbability * notHejtCategoryProbability) /
+  (isHejtProbability * isHejtCategoryProbability +
+    notHejtProbability * notHejtCategoryProbability);
+
+console.log("jest hejtem:");
+console.log(isHejtResult);
+console.log("nie jest hejtem:");
+console.log(notHejtResult);
